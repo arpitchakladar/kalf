@@ -1,24 +1,41 @@
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TokenKind {
+// Literals
 	StringLiteral,
 	CharacterLiteral,
 	IntegerLiteral,
 	FloatingPointLiteral,
+
+// Arithmetic
 	PlusOperator,
 	MinusOperator,
 	SlashOperator,
 	StarOperator,
 	PercentageOperator,
+
+// Assignment
 	AssignmentOperator,
+
+// Relational
 	EqualityOperator,
+	NotEqualityOperator,
 	LessThanOperator,
 	GreaterThanOperator,
-	LessThanEqualOperator,
-	GreaterThanEqualOperator,
+	LessThanEqualToOperator,
+	GreaterThanEqualToOperator,
+
+// Logical
+	LogicalNotOperator,
+	LogicalAndOperator,
+	LogicalOrOperator,
+
+// Separator
 	OpenParenthesis,
 	CloseParenthesis,
+
 	Identifier,
 	Keyword,
+
 	End
 }
 

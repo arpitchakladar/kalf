@@ -21,10 +21,6 @@ impl<'a> Lexer<'a> {
 			return Ok(end_token);
 		}
 
-		if let Some(separator_token) = self.lex_separator() {
-			return Ok(separator_token);
-		}
-
 		if let Some(number_literal_token) = self.lex_number_literal() {
 			return Ok(number_literal_token);
 		}
@@ -73,22 +69,6 @@ impl<'a> Lexer<'a> {
 		}
 	}
 
-	fn lex_separator(&mut self) -> Option<Token<'a>> {
-		let current_index = self.index;
-		let separator_token_kind = match self.get_current_character() {
-			'(' => Some(TokenKind::OpenParenthesis),
-			')' => Some(TokenKind::CloseParenthesis),
-			_ => None
-		};
-
-		if let Some(separator_token_kind) = separator_token_kind {
-			self.index += 1;
-			Some(Token::new(current_index, &self.text[current_index..self.index], separator_token_kind))
-		} else {
-			None
-		}
-	}
-
 	fn lex_operator(&mut self) -> Option<Token<'a>> {
 		let current_index = self.index;
 		let arithmetic_operator_token_kind = match self.get_current_character() {
@@ -97,6 +77,48 @@ impl<'a> Lexer<'a> {
 			'*' => Some(TokenKind::StarOperator),
 			'/' => Some(TokenKind::SlashOperator),
 			'%' => Some(TokenKind::PercentageOperator),
+			'(' => Some(TokenKind::OpenParenthesis),
+			')' => Some(TokenKind::CloseParenthesis),
+			'!' => {
+				if self.get_current_character_offset(1) == '=' {
+					self.index += 2;
+					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::NotEqualityOperator));
+				} else {
+					Some(TokenKind::LogicalNotOperator)
+				}
+			},
+			'|' => {
+				if self.get_current_character_offset(1) == '|' {
+					self.index += 2;
+					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::LogicalOrOperator));
+				} else {
+					None
+				}
+			},
+			'&' => {
+				if self.get_current_character_offset(1) == '&' {
+					self.index += 2;
+					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::LogicalAndOperator));
+				} else {
+					None
+				}
+			},
+			'<' => {
+				if self.get_current_character_offset(1) == '=' {
+					self.index += 2;
+					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::LessThanEqualToOperator));
+				} else {
+					Some(TokenKind::LessThanOperator)
+				}
+			},
+			'>' => {
+				if self.get_current_character_offset(1) == '=' {
+					self.index += 2;
+					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::GreaterThanEqualToOperator));
+				} else {
+					Some(TokenKind::GreaterThanOperator)
+				}
+			},
 			'=' => {
 				if self.get_current_character_offset(1) == '=' {
 					self.index += 2;
