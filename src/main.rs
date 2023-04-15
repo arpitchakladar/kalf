@@ -1,5 +1,6 @@
 mod lexing;
 mod syntax;
+mod parser;
 
 use lexing::{
 	TokenKind,
