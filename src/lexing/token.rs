@@ -1,5 +1,7 @@
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TokenKind {
+	StringLiteral,
+	CharacterLiteral,
 	IntegerLiteral,
 	FloatingPointLiteral,
 	PlusOperator,
@@ -7,12 +9,14 @@ pub enum TokenKind {
 	SlashOperator,
 	StarOperator,
 	PercentageOperator,
-	EqualsOperator,
+	AssignmentOperator,
 	EqualityOperator,
 	LessThanOperator,
 	GreaterThanOperator,
 	LessThanEqualOperator,
 	GreaterThanEqualOperator,
+	OpenParenthesis,
+	CloseParenthesis,
 	Identifier,
 	Keyword,
 	End

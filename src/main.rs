@@ -7,7 +7,7 @@ use lexing::{
 };
 
 fn main() {
-	let mut lexer = Lexer::new("42321312 23423 69.42 var1 = ==");
+	let mut lexer = Lexer::new("42321312 23423 69.42 \"hello world\" 'a' (x + y * z) var1 = == + -");
 	let mut tokens = Vec::new();
 	loop {
 		let token = lexer.lex().unwrap();
