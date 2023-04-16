@@ -39,7 +39,7 @@ pub enum TokenKind {
 	End
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Token<'a> {
 	index: usize,
 	text: &'a str,
@@ -57,5 +57,9 @@ impl<'a> Token<'a> {
 
 	pub fn get_kind(&self) -> TokenKind {
 		self.kind
+	}
+
+	pub fn get_text(&self) -> &'a str {
+		self.text
 	}
 }

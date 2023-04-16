@@ -18,6 +18,14 @@ pub struct UnaryExpression {
 
 impl Syntax for UnaryExpression {
 	fn get_syntax_kind(&self) -> SyntaxKind { SyntaxKind::Expression }
+
+	fn print(&self, indentation: String) {
+		match self.kind {
+			UnaryExpressionKind::Identity => println!("+"),
+			UnaryExpressionKind::Negation => println!("-")
+		}
+		self.operand.print(indentation + "  ");
+	}
 }
 
 impl Expression for UnaryExpression {

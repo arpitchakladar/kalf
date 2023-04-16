@@ -3,7 +3,8 @@ mod expression;
 
 pub use syntax::{
 	SyntaxKind,
-	Syntax
+	Syntax,
+	SyntaxRoot
 };
 pub use expression::{
 	ExpressionKind,
@@ -12,5 +13,7 @@ pub use expression::{
 	BinaryExpression,
 	UnaryExpressionKind,
 	UnaryExpression,
+	LiteralExpressionKind,
+	LiteralExpression,
 	ParenthesisedExpression
 };
