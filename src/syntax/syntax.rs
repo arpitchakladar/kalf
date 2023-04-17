@@ -4,7 +4,7 @@ pub enum SyntaxKind {
 
 pub trait Syntax {
 	fn get_syntax_kind(&self) -> SyntaxKind;
-	fn print(&self, indentation: String);
+	fn print(&self, indentation: usize);
 }
 
 pub struct SyntaxRoot {
@@ -19,6 +19,6 @@ impl SyntaxRoot {
 	}
 
 	pub fn print(&self) {
-		self.root.print("".to_owned());
+		self.root.print(0);
 	}
 }

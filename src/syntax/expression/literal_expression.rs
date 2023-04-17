@@ -15,14 +15,14 @@ pub enum LiteralExpressionKind {
 }
 
 pub struct LiteralExpression<'a> {
-	token: Token<'a>,
+	token: &'a Token<'a>,
 	kind: LiteralExpressionKind
 }
 
 impl Syntax for LiteralExpression<'_> {
 	fn get_syntax_kind(&self) -> SyntaxKind { SyntaxKind::Expression }
 
-	fn print(&self, _indentation: String) {
+	fn print(&self, _: usize) {
 		println!("{}", self.token.get_text());
 	}
 }
@@ -32,7 +32,7 @@ impl Expression for LiteralExpression<'_> {
 }
 
 impl<'a> LiteralExpression<'a> {
-	pub fn new(token: Token<'a>, kind: LiteralExpressionKind) -> Self {
+	pub fn new(token: &'a Token<'a>, kind: LiteralExpressionKind) -> Self {
 		Self {
 			token,
 			kind

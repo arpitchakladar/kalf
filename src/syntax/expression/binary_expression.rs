@@ -14,16 +14,16 @@ pub enum BinaryExpressionKind {
 	Modulo
 }
 
-pub struct BinaryExpression {
-	left_operand: Box<dyn Expression>,
-	right_operand: Box<dyn Expression>,
+pub struct BinaryExpression<'a> {
+	left_operand: Box<dyn Expression + 'a>,
+	right_operand: Box<dyn Expression + 'a>,
 	kind: BinaryExpressionKind
 }
 
-impl Syntax for BinaryExpression {
+impl Syntax for BinaryExpression<'_> {
 	fn get_syntax_kind(&self) -> SyntaxKind { SyntaxKind::Expression }
 
-	fn print(&self, indentation: String) {
+	fn print(&self, indentation: usize) {
 		match self.kind {
 			BinaryExpressionKind::Addition => println!("+"),
 			BinaryExpressionKind::Substraction => println!("-"),
@@ -31,19 +31,25 @@ impl Syntax for BinaryExpression {
 			BinaryExpressionKind::Division => println!("/"),
 			BinaryExpressionKind::Modulo => println!("%"),
 		}
-		print!("{}└ ", &indentation);
-		self.left_operand.print(indentation.clone() + "| ");
-		print!("{}└ ", &indentation);
-		self.right_operand.print(indentation + "  ");
+		for _ in 0..indentation {
+			print!("  ");
+		}
+		print!("└ ");
+		self.left_operand.print(indentation + 1);
+		for _ in 0..indentation {
+			print!("  ");
+		}
+		print!("└ ");
+		self.right_operand.print(indentation + 1);
 	}
 }
 
-impl Expression for BinaryExpression {
+impl Expression for BinaryExpression<'_> {
 	fn get_expression_kind(&self) -> ExpressionKind { ExpressionKind::Binary }
 }
 
-impl BinaryExpression {
-	pub fn new(left_operand: Box<dyn Expression>, right_operand: Box<dyn Expression>, kind: BinaryExpressionKind) -> Self {
+impl<'a> BinaryExpression<'a> {
+	pub fn new(left_operand: Box<dyn Expression + 'a>, right_operand: Box<dyn Expression + 'a>, kind: BinaryExpressionKind) -> Self {
 		Self {
 			left_operand,
 			right_operand,
