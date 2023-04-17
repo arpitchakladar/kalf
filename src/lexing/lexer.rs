@@ -1,22 +1,23 @@
+use std::cell::Cell;
 use crate::lexing::{
 	Token,
 	TokenKind
 };
 
 pub struct Lexer<'a> {
-	index: usize,
+	index: Cell<usize>,
 	text: &'a str
 }
 
 impl<'a> Lexer<'a> {
 	pub fn new(text: &'a str) -> Self {
 		Self {
-			index: 0,
+			index: Cell::new(0),
 			text
 		}
 	}
 
-	pub fn lex(&mut self) -> Result<Token<'a>, &'static str> {
+	pub fn lex(&self) -> Result<Token<'a>, &'static str> {
 		if let Some(end_token) = self.lex_white_space() {
 			return Ok(end_token);
 		}
@@ -44,20 +45,28 @@ impl<'a> Lexer<'a> {
 		Err("Unknown token.")
 	}
 
+	fn increment_index(&self) {
+		self.index.set(self.index.get() + 1);
+	}
+
+	fn increment_index_by(&self, by: usize) {
+		self.index.set(self.index.get() + by);
+	}
+
 	fn get_current_character(&self) -> char {
-		self.text.chars().nth(self.index).unwrap()
+		self.text.chars().nth(self.index.get()).unwrap()
 	}
 
 	fn get_current_character_offset(&self, offset: usize) -> char {
-		self.text.chars().nth(self.index + offset).unwrap()
+		self.text.chars().nth(self.index.get() + offset).unwrap()
 	}
 
-	fn lex_white_space(&mut self) -> Option<Token<'a>> {
+	fn lex_white_space(&self) -> Option<Token<'a>> {
 		loop {
-			match self.text.chars().nth(self.index) {
+			match self.text.chars().nth(self.index.get()) {
 				Some(current_character) => {
 					if current_character.is_whitespace() {
-						self.index += 1;
+						self.increment_index();
 					} else {
 						return None;
 					}
@@ -69,8 +78,8 @@ impl<'a> Lexer<'a> {
 		}
 	}
 
-	fn lex_operator(&mut self) -> Option<Token<'a>> {
-		let current_index = self.index;
+	fn lex_operator(&self) -> Option<Token<'a>> {
+		let current_index = self.index.get();
 		let arithmetic_operator_token_kind = match self.get_current_character() {
 			'+' => Some(TokenKind::PlusOperator),
 			'-' => Some(TokenKind::MinusOperator),
@@ -81,48 +90,48 @@ impl<'a> Lexer<'a> {
 			')' => Some(TokenKind::CloseParenthesis),
 			'!' => {
 				if self.get_current_character_offset(1) == '=' {
-					self.index += 2;
-					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::NotEqualityOperator));
+					self.increment_index_by(2);
+					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::NotEqualityOperator));
 				} else {
 					Some(TokenKind::LogicalNotOperator)
 				}
 			},
 			'|' => {
 				if self.get_current_character_offset(1) == '|' {
-					self.index += 2;
-					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::LogicalOrOperator));
+					self.increment_index_by(2);
+					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LogicalOrOperator));
 				} else {
 					None
 				}
 			},
 			'&' => {
 				if self.get_current_character_offset(1) == '&' {
-					self.index += 2;
-					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::LogicalAndOperator));
+					self.increment_index_by(2);
+					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LogicalAndOperator));
 				} else {
 					None
 				}
 			},
 			'<' => {
 				if self.get_current_character_offset(1) == '=' {
-					self.index += 2;
-					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::LessThanEqualToOperator));
+					self.increment_index_by(2);
+					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LessThanEqualToOperator));
 				} else {
 					Some(TokenKind::LessThanOperator)
 				}
 			},
 			'>' => {
 				if self.get_current_character_offset(1) == '=' {
-					self.index += 2;
-					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::GreaterThanEqualToOperator));
+					self.increment_index_by(2);
+					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::GreaterThanEqualToOperator));
 				} else {
 					Some(TokenKind::GreaterThanOperator)
 				}
 			},
 			'=' => {
 				if self.get_current_character_offset(1) == '=' {
-					self.index += 2;
-					return Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::EqualityOperator));
+					self.increment_index_by(2);
+					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::EqualityOperator));
 				} else {
 					Some(TokenKind::AssignmentOperator)
 				}
@@ -131,17 +140,17 @@ impl<'a> Lexer<'a> {
 		};
 
 		if let Some(arithmetic_operator_token_kind) = arithmetic_operator_token_kind {
-			self.index += 1;
-			Some(Token::new(current_index, &self.text[current_index..self.index], arithmetic_operator_token_kind))
+			self.increment_index();
+			Some(Token::new(current_index, &self.text[current_index..self.index.get()], arithmetic_operator_token_kind))
 		} else {
 			None
 		}
 	}
 
-	fn lex_number_literal(&mut self) -> Option<Token<'a>> {
+	fn lex_number_literal(&self) -> Option<Token<'a>> {
 		if self.get_current_character().is_numeric() {
-			let start_position = self.index;
-			self.index += 1;
+			let start_position = self.index.get();
+			self.increment_index();
 			let mut number_literal_kind = TokenKind::IntegerLiteral;
 
 			loop {
@@ -157,65 +166,65 @@ impl<'a> Lexer<'a> {
 					break;
 				}
 
-				self.index += 1;
+				self.increment_index();
 
-				if self.text.len() <= self.index {
+				if self.text.len() <= self.index.get() {
 					break;
 				}
 			}
 
-			Some(Token::new(start_position, &self.text[start_position..self.index], number_literal_kind))
+			Some(Token::new(start_position, &self.text[start_position..self.index.get()], number_literal_kind))
 		} else {
 			None
 		}
 	}
 
-	fn lex_string_literal(&mut self) -> Option<Token<'a>> {
+	fn lex_string_literal(&self) -> Option<Token<'a>> {
 		if self.get_current_character() == '"' {
-			let start_position = self.index;
-			self.index += 1;
+			let start_position = self.index.get();
+			self.increment_index();
 
 			while self.get_current_character() != '"' {
-				self.index += 1;
+				self.increment_index();
 
-				if self.text.len() <= self.index {
+				if self.text.len() <= self.index.get() {
 					return None;
 				}
 			}
 
-			self.index += 1;
+			self.increment_index();
 
-			Some(Token::new(start_position, &self.text[start_position..self.index], TokenKind::StringLiteral))
+			Some(Token::new(start_position, &self.text[start_position..self.index.get()], TokenKind::StringLiteral))
 		} else {
 			None
 		}
 	}
 
-	fn lex_character_literal(&mut self) -> Option<Token<'a>> {
+	fn lex_character_literal(&self) -> Option<Token<'a>> {
 		if self.get_current_character() == '\'' && self.get_current_character_offset(2) == '\'' {
-			let current_index = self.index;
-			self.index += 3;
+			let current_index = self.index.get();
+			self.increment_index_by(3);
 
-			Some(Token::new(current_index, &self.text[current_index..self.index], TokenKind::CharacterLiteral))
+			Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::CharacterLiteral))
 		} else {
 			None
 		}
 	}
 
-	fn lex_keyword_and_identifier(&mut self) -> Option<Token<'a>> {
+	fn lex_keyword_and_identifier(&self) -> Option<Token<'a>> {
 		if self.get_current_character().is_alphabetic() {
-			let start_position = self.index;
-			self.index += 1;
+			let start_position = self.index.get();
+			self.increment_index();
 
 			while self.get_current_character().is_alphanumeric() {
-				self.index += 1;
+				self.increment_index();
 
-				if self.text.len() <= self.index {
+				if self.text.len() <= self.index.get() {
 					break;
 				}
 			}
 
-			Some(Token::new(start_position, &self.text[start_position..self.index], TokenKind::Identifier))
+			Some(Token::new(start_position, &self.text[start_position..self.index.get()], TokenKind::Identifier))
 		} else {
 			None
 		}

@@ -31,6 +31,10 @@ impl<'a> Parser<'a> {
 		}
 	}
 
+	fn increment_index(&self) {
+		self.index.set(self.index.get() + 1);
+	}
+
 	fn get_current_token(&self) -> &Token {
 		if self.index.get() < self.tokens.len() {
 			&self.tokens[self.index.get()]
@@ -69,10 +73,10 @@ impl<'a> Parser<'a> {
 
 	fn parseParenthesisedExpression(&'a self) -> Option<Box<dyn Expression + 'a>> {
 		if self.get_current_token().get_kind() == TokenKind::OpenParenthesis {
-			self.index.set(self.index.get() + 1);
+			self.increment_index();
 			let content_expression = self.parseExpression();
 			if self.get_current_token().get_kind() == TokenKind::CloseParenthesis {
-				self.index.set(self.index.get() + 1);
+				self.increment_index();
 				return Some(Box::new(ParenthesisedExpression::new(content_expression)));
 			}
 		}
@@ -90,7 +94,7 @@ impl<'a> Parser<'a> {
 			_ => return None
 		};
 
-		self.index.set(self.index.get() + 1);
+		self.increment_index();
 
 		Some(Box::new(LiteralExpression::new(current_token, literal_expression_kind)))
 	}
@@ -102,7 +106,7 @@ impl<'a> Parser<'a> {
 			_ => return None
 		};
 
-		self.index.set(self.index.get() + 1);
+		self.increment_index();
 		let operand = self.parseExpression();
 
 		Some(Box::new(UnaryExpression::new(operand, unary_expression_kind)))
@@ -120,7 +124,7 @@ impl<'a> Parser<'a> {
 			_ => return Some(left_operand)
 		};
 
-		self.index.set(self.index.get() + 1);
+		self.increment_index();
 
 		Some(Box::new(BinaryExpression::new(left_operand, self.parseExpression(), binary_operation_kind)))
 	}
