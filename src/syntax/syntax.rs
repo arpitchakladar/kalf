@@ -1,3 +1,5 @@
-pub enum Syntax {
-	Expression
+use crate::syntax::Expression;
+
+pub enum Syntax<'a> {
+	Expression(Expression<'a>)
 }

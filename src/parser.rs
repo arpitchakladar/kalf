@@ -1,22 +1,16 @@
 use std::cell::Cell;
 use crate::syntax::{
-	SyntaxKind,
 	Syntax,
-	SyntaxRoot,
-	ExpressionKind,
 	Expression,
-	BinaryExpressionKind,
+	BinaryExpressionContent,
 	BinaryExpression,
-	UnaryExpressionKind,
+	UnaryExpressionContent,
 	UnaryExpression,
-	LiteralExpressionKind,
+	LiteralExpressionContent,
 	LiteralExpression,
 	ParenthesisedExpression
 };
-use crate::lexing::{
-	TokenKind,
-	Token
-};
+use crate::lexing::Token;
 
 pub struct Parser<'a> {
 	tokens: &'a Vec<Token<'a>>,
@@ -43,89 +37,97 @@ impl<'a> Parser<'a> {
 		}
 	}
 
-	pub fn parse(&self) -> SyntaxRoot {
-		todo!()
+	pub fn parse(&self) -> Box<Syntax> {
+		Box::new(Syntax::Expression(self.parse_expression()))
 	}
 
-	pub fn parseExpression(&'a self) -> Box<dyn Expression + 'a> {
-		if let Some(binary_expression) = self.parseBinaryExpression() {
+	fn parse_expression(&'a self) -> Expression {
+		if let Some(binary_expression) = self.parse_binary_expression() {
 			return binary_expression;
 		}
 
 		panic!("Parsing failed")
 	}
 
-	fn parseNonBinaryExpression(&'a self) -> Box<dyn Expression + 'a> {
-		if let Some(parenthesised_expression) = self.parseParenthesisedExpression() {
+	fn parse_non_binary_expression(&'a self) -> Expression {
+		if let Some(parenthesised_expression) = self.parse_parenthesised_expression() {
 			return parenthesised_expression;
 		}
 
-		if let Some(literal_expression) = self.parseLiteralExpression() {
+		if let Some(literal_expression) = self.parse_literal_expression() {
 			return literal_expression;
 		}
 
-		if let Some(unary_expression) = self.parseUnaryExpression() {
+		if let Some(unary_expression) = self.parse_unary_expression() {
 			return unary_expression;
 		}
 
 		panic!("Parsing failed");
 	}
 
-	fn parseParenthesisedExpression(&'a self) -> Option<Box<dyn Expression + 'a>> {
-		if self.get_current_token().get_kind() == TokenKind::OpenParenthesis {
-			self.increment_index();
-			let content_expression = self.parseExpression();
-			if self.get_current_token().get_kind() == TokenKind::CloseParenthesis {
-				self.increment_index();
-				return Some(Box::new(ParenthesisedExpression::new(content_expression)));
-			}
+	fn parse_parenthesised_expression(&'a self) -> Option<Expression> {
+		match self.get_current_token() {
+			Token::OpenParenthesis(..) => {
+				let content = self.parse_operand_expression();
+				match self.get_current_token() {
+					Token::CloseParenthesis(..) => {
+						self.increment_index();
+						Some(Expression::Parenthesised(ParenthesisedExpression::new(content)))
+					},
+					_ => None
+				}
+			},
+			_ => None
 		}
-
-		None
 	}
 
-	fn parseLiteralExpression(&'a self) -> Option<Box<dyn Expression + 'a>> {
+	fn parse_literal_expression(&'a self) -> Option<Expression> {
 		let current_token = self.get_current_token();
-		let literal_expression_kind = match current_token.get_kind() {
-			TokenKind::StringLiteral => LiteralExpressionKind::String,
-			TokenKind::CharacterLiteral => LiteralExpressionKind::Character,
-			TokenKind::IntegerLiteral => LiteralExpressionKind::Integer,
-			TokenKind::FloatingPointLiteral => LiteralExpressionKind::FloatingPoint,
+
+		Some(Expression::Literal(match current_token {
+			Token::StringLiteral(..) => {
+				self.increment_index();
+				LiteralExpression::String(LiteralExpressionContent::new(current_token))
+			},
+			Token::CharacterLiteral(..) => {
+				self.increment_index();
+				LiteralExpression::Character(LiteralExpressionContent::new(current_token))
+			},
+			Token::IntegerLiteral(..) => {
+				self.increment_index();
+				LiteralExpression::Integer(LiteralExpressionContent::new(current_token))
+			},
+			Token::FloatingPointLiteral(..) => {
+				self.increment_index();
+				LiteralExpression::FloatingPoint(LiteralExpressionContent::new(current_token))
+			},
 			_ => return None
-		};
-
+		}))
+	}
+	
+	fn parse_operand_expression(&'a self) -> Box<Expression> {
 		self.increment_index();
-
-		Some(Box::new(LiteralExpression::new(current_token, literal_expression_kind)))
+		Box::new(self.parse_expression())
 	}
 
-	fn parseUnaryExpression(&'a self) -> Option<Box<dyn Expression + 'a>> {
-		let unary_expression_kind = match self.get_current_token().get_kind() {
-			TokenKind::PlusOperator => UnaryExpressionKind::Identity,
-			TokenKind::MinusOperator => UnaryExpressionKind::Negation,
+	fn parse_unary_expression(&'a self) -> Option<Expression> {
+		Some(Expression::Unary(match self.get_current_token() {
+			Token::PlusOperator(..) => UnaryExpression::Identity(UnaryExpressionContent::new(self.parse_operand_expression())),
+			Token::MinusOperator(..) => UnaryExpression::Negation(UnaryExpressionContent::new(self.parse_operand_expression())),
 			_ => return None
-		};
-
-		self.increment_index();
-		let operand = self.parseExpression();
-
-		Some(Box::new(UnaryExpression::new(operand, unary_expression_kind)))
+		}))
 	}
 
-	fn parseBinaryExpression(&'a self) -> Option<Box<dyn Expression + 'a>> {
-		let left_operand = self.parseNonBinaryExpression();
+	fn parse_binary_expression(&'a self) -> Option<Expression> {
+		let left_operand = self.parse_non_binary_expression();
 
-		let binary_operation_kind = match self.get_current_token().get_kind() {
-			TokenKind::PlusOperator => BinaryExpressionKind::Addition,
-			TokenKind::MinusOperator => BinaryExpressionKind::Substraction,
-			TokenKind::SlashOperator => BinaryExpressionKind::Division,
-			TokenKind::StarOperator => BinaryExpressionKind::Multiplication,
-			TokenKind::PercentageOperator => BinaryExpressionKind::Modulo,
+		Some(Expression::Binary(match self.get_current_token() {
+			Token::PlusOperator(..) => BinaryExpression::Addition(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
+			Token::MinusOperator(..) => BinaryExpression::Substraction(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
+			Token::SlashOperator(..) => BinaryExpression::Division(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
+			Token::StarOperator(..) => BinaryExpression::Multiplication(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
+			Token::PercentageOperator(..) => BinaryExpression::Modulo(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
 			_ => return Some(left_operand)
-		};
-
-		self.increment_index();
-
-		Some(Box::new(BinaryExpression::new(left_operand, self.parseExpression(), binary_operation_kind)))
+		}))
 	}
 }
