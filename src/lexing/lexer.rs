@@ -72,7 +72,7 @@ impl<'a> Lexer<'a> {
 					}
 				},
 				None => {
-					return Some(Token::new(self.text.len(), "\0", TokenKind::End));
+					return Some(Token::End);
 				}
 			}
 		}
@@ -80,26 +80,48 @@ impl<'a> Lexer<'a> {
 
 	fn lex_operator(&self) -> Option<Token<'a>> {
 		let current_index = self.index.get();
-		let arithmetic_operator_token_kind = match self.get_current_character() {
-			'+' => Some(TokenKind::PlusOperator),
-			'-' => Some(TokenKind::MinusOperator),
-			'*' => Some(TokenKind::StarOperator),
-			'/' => Some(TokenKind::SlashOperator),
-			'%' => Some(TokenKind::PercentageOperator),
-			'(' => Some(TokenKind::OpenParenthesis),
-			')' => Some(TokenKind::CloseParenthesis),
+		match self.get_current_character() {
+			'+' => {
+				self.increment_index();
+				Some(Token::PlusOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
+			},
+			'-' => {
+				self.increment_index();
+				Some(Token::MinusOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
+			},
+			'*' => {
+				self.increment_index();
+				Some(Token::StarOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
+			},
+			'/' => {
+				self.increment_index();
+				Some(Token::SlashOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
+			},
+			'%' => {
+				self.increment_index();
+				Some(Token::PercentageOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
+			},
+			'(' => {
+				self.increment_index();
+				Some(Token::OpenParenthesis(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
+			},
+			')' => {
+				self.increment_index();
+				Some(Token::CloseParenthesis(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
+			},
 			'!' => {
 				if self.get_current_character_offset(1) == '=' {
 					self.increment_index_by(2);
-					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::NotEqualityOperator));
+					Some(Token::NotEqualityOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				} else {
-					Some(TokenKind::LogicalNotOperator)
+					self.increment_index();
+					Some(Token::LogicalNotOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				}
 			},
 			'|' => {
 				if self.get_current_character_offset(1) == '|' {
 					self.increment_index_by(2);
-					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LogicalOrOperator));
+					Some(Token::LogicalOrOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				} else {
 					None
 				}
@@ -107,7 +129,7 @@ impl<'a> Lexer<'a> {
 			'&' => {
 				if self.get_current_character_offset(1) == '&' {
 					self.increment_index_by(2);
-					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LogicalAndOperator));
+					Some(Token::LogicalAndOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				} else {
 					None
 				}
@@ -115,35 +137,31 @@ impl<'a> Lexer<'a> {
 			'<' => {
 				if self.get_current_character_offset(1) == '=' {
 					self.increment_index_by(2);
-					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LessThanEqualToOperator));
+					Some(Token::LessThanEqualToOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				} else {
-					Some(TokenKind::LessThanOperator)
+					self.increment_index();
+					Some(Token::LessThanOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				}
 			},
 			'>' => {
 				if self.get_current_character_offset(1) == '=' {
 					self.increment_index_by(2);
-					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::GreaterThanEqualToOperator));
+					Some(Token::GreaterThanEqualToOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				} else {
-					Some(TokenKind::GreaterThanOperator)
+					self.increment_index();
+					Some(Token::GreaterThanOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				}
 			},
 			'=' => {
 				if self.get_current_character_offset(1) == '=' {
 					self.increment_index_by(2);
-					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::EqualityOperator));
+					Some(Token::EqualityOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				} else {
-					Some(TokenKind::AssignmentOperator)
+					self.increment_index();
+					Some(Token::AssignmentOperator(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 				}
 			},
 			_ => None
-		};
-
-		if let Some(arithmetic_operator_token_kind) = arithmetic_operator_token_kind {
-			self.increment_index();
-			Some(Token::new(current_index, &self.text[current_index..self.index.get()], arithmetic_operator_token_kind))
-		} else {
-			None
 		}
 	}
 
@@ -151,16 +169,16 @@ impl<'a> Lexer<'a> {
 		if self.get_current_character().is_numeric() {
 			let start_position = self.index.get();
 			self.increment_index();
-			let mut number_literal_kind = TokenKind::IntegerLiteral;
+			let mut is_integer_literal = true;
 
 			loop {
 				let current_character = self.get_current_character();
 
 				if current_character == '.' {
-					if number_literal_kind == TokenKind::FloatingPointLiteral {
+					if !is_integer_literal {
 						return None;
 					} else {
-						number_literal_kind = TokenKind::FloatingPointLiteral;
+						is_integer_literal = false;
 					}
 				} else if !current_character.is_numeric() {
 					break;
@@ -173,7 +191,11 @@ impl<'a> Lexer<'a> {
 				}
 			}
 
-			Some(Token::new(start_position, &self.text[start_position..self.index.get()], number_literal_kind))
+			Some(if is_integer_literal {
+				Token::IntegerLiteral(TokenContent::new(start_position, &self.text[start_position..self.index.get()]))
+			} else {
+				Token::FloatingPointLiteral(TokenContent::new(start_position, &self.text[start_position..self.index.get()]))
+			})
 		} else {
 			None
 		}
@@ -194,7 +216,7 @@ impl<'a> Lexer<'a> {
 
 			self.increment_index();
 
-			Some(Token::new(start_position, &self.text[start_position..self.index.get()], TokenKind::StringLiteral))
+			Some(Token::StringLiteral(TokenContent::new(start_position, &self.text[start_position..self.index.get()])))
 		} else {
 			None
 		}
@@ -205,7 +227,7 @@ impl<'a> Lexer<'a> {
 			let current_index = self.index.get();
 			self.increment_index_by(3);
 
-			Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::CharacterLiteral))
+			Some(Token::CharacterLiteral(TokenContent::new(current_index, &self.text[current_index..self.index.get()])))
 		} else {
 			None
 		}
@@ -224,7 +246,7 @@ impl<'a> Lexer<'a> {
 				}
 			}
 
-			Some(Token::new(start_position, &self.text[start_position..self.index.get()], TokenKind::Identifier))
+			Some(Token::Identifier(TokenContent::new(start_position, &self.text[start_position..self.index.get()])))
 		} else {
 			None
 		}

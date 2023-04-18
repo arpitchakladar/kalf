@@ -2,7 +2,6 @@ mod lexing;
 mod syntax;
 
 use lexing::{
-	TokenKind,
 	Token,
 	Lexer
 };
@@ -20,7 +19,7 @@ fn main() {
 
 	loop {
 		let token = lexer.lex().unwrap();
-		if token.get_kind() == TokenKind::End {
+		if let Token::End = token {
 			break;
 		} else {
 			tokens.push(token);
