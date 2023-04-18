@@ -74,7 +74,7 @@ impl<'a> Parser<'a> {
 						self.increment_index();
 						Some(Expression::Parenthesised(ParenthesisedExpression::new(content)))
 					},
-					_ => None
+					_ => panic!("Unclosed delimiter.")
 				}
 			},
 			_ => None
@@ -85,26 +85,26 @@ impl<'a> Parser<'a> {
 		let current_token = self.get_current_token();
 
 		Some(Expression::Literal(match current_token {
-			Token::StringLiteral(..) => {
+			Token::StringLiteral(token_content) => {
 				self.increment_index();
-				LiteralExpression::String(LiteralExpressionContent::new(current_token))
+				LiteralExpression::String(LiteralExpressionContent::new(token_content))
 			},
-			Token::CharacterLiteral(..) => {
+			Token::CharacterLiteral(token_content) => {
 				self.increment_index();
-				LiteralExpression::Character(LiteralExpressionContent::new(current_token))
+				LiteralExpression::Character(LiteralExpressionContent::new(token_content))
 			},
-			Token::IntegerLiteral(..) => {
+			Token::IntegerLiteral(token_content) => {
 				self.increment_index();
-				LiteralExpression::Integer(LiteralExpressionContent::new(current_token))
+				LiteralExpression::Integer(LiteralExpressionContent::new(token_content))
 			},
-			Token::FloatingPointLiteral(..) => {
+			Token::FloatingPointLiteral(token_content) => {
 				self.increment_index();
-				LiteralExpression::FloatingPoint(LiteralExpressionContent::new(current_token))
+				LiteralExpression::FloatingPoint(LiteralExpressionContent::new(token_content))
 			},
 			_ => return None
 		}))
 	}
-	
+
 	fn parse_operand_expression(&'a self) -> Box<Expression> {
 		self.increment_index();
 		Box::new(self.parse_expression())

@@ -12,4 +12,8 @@ impl<'a> ParenthesisedExpression<'a> {
 			content
 		}
 	}
+
+	pub fn get_content(&self) -> &Expression<'a> {
+		&self.content
+	}
 }

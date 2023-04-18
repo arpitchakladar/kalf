@@ -17,4 +17,8 @@ impl<'a> UnaryExpressionContent<'a> {
 			operand
 		}
 	}
+
+	pub fn get_operand(&self) -> &Expression<'a> {
+		&self.operand
+	}
 }

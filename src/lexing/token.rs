@@ -38,7 +38,6 @@ pub enum Token<'a> {
 	End
 }
 
-#[derive(Debug, Clone, Copy)]
 pub struct TokenContent<'a> {
 	index: usize,
 	text: &'a str

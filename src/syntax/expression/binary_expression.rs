@@ -22,4 +22,12 @@ impl<'a> BinaryExpressionContent<'a> {
 			right_operand
 		}
 	}
+
+	pub fn get_left_operand(&self) -> &Expression<'a> {
+		&self.left_operand
+	}
+
+	pub fn get_right_operand(&self) -> &Expression<'a> {
+		&self.right_operand
+	}
 }
