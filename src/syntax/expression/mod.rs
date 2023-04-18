@@ -5,19 +5,18 @@ mod literal_expression;
 mod parenthesised_expression;
 
 pub use expression::{
-	ExpressionKind,
 	Expression
 };
 pub use binary_expression::{
-	BinaryExpressionKind,
+	BinaryExpressionContent,
 	BinaryExpression
 };
 pub use unary_expression::{
-	UnaryExpressionKind,
+	UnaryExpressionContent,
 	UnaryExpression
 };
 pub use literal_expression::{
-	LiteralExpressionKind,
+	LiteralExpressionContent,
 	LiteralExpression
 };
 pub use parenthesised_expression::ParenthesisedExpression;

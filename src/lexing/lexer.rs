@@ -1,7 +1,7 @@
 use std::cell::Cell;
 use crate::lexing::{
 	Token,
-	TokenKind
+	TokenContent
 };
 
 pub struct Lexer<'a> {

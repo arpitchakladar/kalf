@@ -2,7 +2,7 @@ mod token;
 mod lexer;
 
 pub use token::{
-	TokenKind,
-	Token
+	Token,
+	TokenContent
 };
 pub use lexer::Lexer;

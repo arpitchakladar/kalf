@@ -1,6 +1,5 @@
 mod lexing;
 mod syntax;
-mod parser;
 
 use lexing::{
 	TokenKind,
@@ -9,13 +8,11 @@ use lexing::{
 };
 use syntax::{
 	Syntax,
-	SyntaxRoot,
-	BinaryExpressionKind,
+	BinaryExpressionContent,
 	BinaryExpression,
-	LiteralExpressionKind,
+	LiteralExpressionContent,
 	LiteralExpression
 };
-use parser::Parser;
 
 fn main() {
 	let lexer = Lexer::new("(10 * 32.2 - 12) / 12 - 12 + 13 % (9 - 6)");
@@ -29,7 +26,7 @@ fn main() {
 			tokens.push(token);
 		}
 	}
-
+/*
 	let parser = Parser::new(&tokens);
-	parser.parseExpression().print(0);
+	parser.parseExpression().as_syntax().print(0);*/
 }

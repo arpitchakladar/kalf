@@ -1,44 +1,20 @@
 use crate::syntax::{
-	SyntaxKind,
-	Syntax,
-	ExpressionKind,
 	Expression
 };
 
-#[derive(Clone, Copy)]
-pub enum UnaryExpressionKind {
-	Identity,
-	Negation
+pub enum UnaryExpression<'a> {
+	Identity(UnaryExpressionContent<'a>),
+	Negation(UnaryExpressionContent<'a>)
 }
 
-pub struct UnaryExpression<'a> {
-	operand: Box<dyn Expression + 'a>,
-	kind: UnaryExpressionKind
+pub struct UnaryExpressionContent<'a> {
+	operand: Box<Expression<'a>>
 }
 
-impl Syntax for UnaryExpression<'_> {
-	fn get_syntax_kind(&self) -> SyntaxKind { SyntaxKind::Expression }
-
-	fn print(&self, indentation: usize) {
-		match self.kind {
-			UnaryExpressionKind::Identity => println!("+"),
-			UnaryExpressionKind::Negation => println!("-")
-		}
-		self.operand.print(indentation + 1);
-	}
-}
-
-impl Expression for UnaryExpression<'_> {
-	fn get_expression_kind(&self) -> ExpressionKind { ExpressionKind::Unary }
-}
-
-impl<'a> UnaryExpression<'a> {
-	pub fn new(operand: Box<dyn Expression + 'a>, kind: UnaryExpressionKind) -> Self {
+impl<'a> UnaryExpressionContent<'a> {
+	pub fn new(operand: Box<Expression<'a>>) -> Self {
 		Self {
-			operand,
-			kind
+			operand
 		}
 	}
-
-	pub fn get_binary_expression_kind(&self) -> UnaryExpressionKind { self.kind }
 }

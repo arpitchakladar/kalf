@@ -2,18 +2,15 @@ mod syntax;
 mod expression;
 
 pub use syntax::{
-	SyntaxKind,
-	Syntax,
-	SyntaxRoot
+	Syntax
 };
 pub use expression::{
-	ExpressionKind,
 	Expression,
-	BinaryExpressionKind,
+	BinaryExpressionContent,
 	BinaryExpression,
-	UnaryExpressionKind,
+	UnaryExpressionContent,
 	UnaryExpression,
-	LiteralExpressionKind,
+	LiteralExpressionContent,
 	LiteralExpression,
 	ParenthesisedExpression
 };
