@@ -1,5 +1,4 @@
 use crate::syntax::{
-	Syntax,
 	Expression,
 	BinaryExpressionKind,
 	BinaryExpression,
@@ -9,13 +8,7 @@ use crate::syntax::{
 	ParenthesisedExpression
 };
 
-pub fn print_syntax(syntax: &Syntax) {
-	match syntax {
-		Syntax::Expression(expression) => print_expression(expression, 0)
-	}
-}
-
-fn print_expression(expression: &Expression, indentation: usize) {
+pub fn print_expression(expression: &Expression, indentation: usize) {
 	match expression {
 		Expression::Binary(binary_expression) => print_binary_expression(binary_expression, indentation),
 		Expression::Unary(unary_expression) => print_unary_expression(unary_expression, indentation),

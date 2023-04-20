@@ -1,9 +1,5 @@
-mod syntax;
 mod expression;
 
-pub use syntax::{
-	Syntax
-};
 pub use expression::{
 	Expression,
 	BinaryExpressionKind,
@@ -14,3 +10,7 @@ pub use expression::{
 	LiteralExpression,
 	ParenthesisedExpression
 };
+
+pub enum Syntax<'a> {
+	Expression(Expression<'a>)
+}
