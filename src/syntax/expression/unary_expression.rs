@@ -8,6 +8,7 @@ pub enum UnaryExpressionKind {
 	Negation
 }
 
+#[derive(Clone)]
 pub struct UnaryExpression<'a> {
 	operand: Box<Expression<'a>>,
 	kind: UnaryExpressionKind

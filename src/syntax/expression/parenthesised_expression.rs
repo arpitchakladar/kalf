@@ -2,6 +2,7 @@ use crate::syntax::{
 	Expression
 };
 
+#[derive(Clone)]
 pub struct ParenthesisedExpression<'a> {
 	content: Box<Expression<'a>>
 }

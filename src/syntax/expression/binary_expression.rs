@@ -11,6 +11,20 @@ pub enum BinaryExpressionKind {
 	Modulo
 }
 
+impl BinaryExpressionKind {
+	pub fn get_precedence(&self) -> u8 {
+		match self {
+			BinaryExpressionKind::Addition |
+			BinaryExpressionKind::Substraction => 1,
+
+			BinaryExpressionKind::Multiplication |
+			BinaryExpressionKind::Division |
+			BinaryExpressionKind::Modulo => 2
+		}
+	}
+}
+
+#[derive(Clone)]
 pub struct BinaryExpression<'a> {
 	left_operand: Box<Expression<'a>>,
 	right_operand: Box<Expression<'a>>,

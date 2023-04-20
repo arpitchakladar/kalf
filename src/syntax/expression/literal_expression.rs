@@ -8,6 +8,7 @@ pub enum LiteralExpressionKind {
 	String
 }
 
+#[derive(Clone)]
 pub struct LiteralExpression<'a> {
 	token: &'a Token<'a>,
 	kind: LiteralExpressionKind

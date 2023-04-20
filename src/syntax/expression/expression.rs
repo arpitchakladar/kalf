@@ -5,6 +5,7 @@ use crate::syntax::{
 	ParenthesisedExpression
 };
 
+#[derive(Clone)]
 pub enum Expression<'a> {
 	Binary(BinaryExpression<'a>),
 	Unary(UnaryExpression<'a>),

@@ -118,32 +118,24 @@ impl<'a> Parser<'a> {
 	fn parse_binary_expression(&self) -> Option<Expression> {
 		let left_operand = self.parse_non_binary_expression();
 
-		let precedence;
 		let binary_expression_kind = match self.get_current_token().get_kind() {
-			TokenKind::PlusOperator => {
-				precedence = 1;
-				BinaryExpressionKind::Addition
-			},
-			TokenKind::MinusOperator => {
-				precedence = 1;
-				BinaryExpressionKind::Substraction
-			},
-			TokenKind::SlashOperator => {
-				precedence = 2;
-				BinaryExpressionKind::Division
-			},
-			TokenKind::StarOperator => {
-				precedence = 2;
-				BinaryExpressionKind::Multiplication
-			},
-			TokenKind::PercentageOperator => {
-				precedence = 2;
-				BinaryExpressionKind::Modulo
-			},
+			TokenKind::PlusOperator => BinaryExpressionKind::Addition,
+			TokenKind::MinusOperator => BinaryExpressionKind::Substraction,
+			TokenKind::SlashOperator => BinaryExpressionKind::Division,
+			TokenKind::StarOperator => BinaryExpressionKind::Multiplication,
+			TokenKind::PercentageOperator => BinaryExpressionKind::Modulo,
 			_ => return Some(left_operand)
 		};
 
 		let right_operand = self.parse_operand_expression();
+
+		if let Expression::Binary(ref new_right_operand) = right_operand {
+			if binary_expression_kind.get_precedence() > new_right_operand.get_kind().get_precedence() {
+				let new_left_operand = Box::new(Expression::Binary(BinaryExpression::new(Box::new(left_operand), Box::new(new_right_operand.get_left_operand().clone()), binary_expression_kind)));
+				let binary_expression_kind = new_right_operand.get_kind();
+				return Some(Expression::Binary(BinaryExpression::new(new_left_operand, Box::new(new_right_operand.get_right_operand().clone()), binary_expression_kind)));
+			}
+		}
 
 		Some(Expression::Binary(BinaryExpression::new(Box::new(left_operand), Box::new(right_operand), binary_expression_kind)))
 	}
