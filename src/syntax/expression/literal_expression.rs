@@ -8,7 +8,6 @@ pub enum LiteralExpressionKind {
 	String
 }
 
-#[derive(Clone)]
 pub struct LiteralExpression<'a> {
 	token: &'a Token<'a>,
 	kind: LiteralExpressionKind
@@ -22,11 +21,11 @@ impl<'a> LiteralExpression<'a> {
 		}
 	}
 
-	pub fn get_token(&self) -> &Token<'a> {
+	pub fn token(&self) -> &Token<'a> {
 		&self.token
 	}
 
-	pub fn get_kind(&self) -> LiteralExpressionKind {
+	pub fn kind(&self) -> LiteralExpressionKind {
 		self.kind
 	}
 }

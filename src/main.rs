@@ -16,7 +16,7 @@ fn main() {
 
 	loop {
 		let token = lexer.lex().unwrap();
-		if token.get_kind() == TokenKind::End {
+		if token.kind() == TokenKind::End {
 			break;
 		} else {
 			tokens.push(token);

@@ -1,20 +1,20 @@
+use std::rc::Rc;
 use crate::syntax::{
 	Expression
 };
 
-#[derive(Clone)]
 pub struct ParenthesisedExpression<'a> {
-	content: Box<Expression<'a>>
+	content: Rc<Expression<'a>>
 }
 
 impl<'a> ParenthesisedExpression<'a> {
-	pub fn new(content: Box<Expression<'a>>) -> Self {
+	pub fn new(content: Rc<Expression<'a>>) -> Self {
 		Self {
 			content
 		}
 	}
 
-	pub fn get_content(&self) -> &Expression<'a> {
+	pub fn content(&self) -> &Expression<'a> {
 		&self.content
 	}
 }

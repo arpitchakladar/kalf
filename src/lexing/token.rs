@@ -54,11 +54,11 @@ impl<'a> Token<'a> {
 		}
 	}
 
-	pub fn get_text(&self) -> &'a str {
+	pub fn text(&self) -> &'a str {
 		self.text
 	}
 
-	pub fn get_kind(&self) -> TokenKind {
+	pub fn kind(&self) -> TokenKind {
 		self.kind
 	}
 }

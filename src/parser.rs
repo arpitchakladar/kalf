@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use std::cell::Cell;
 use crate::syntax::{
 	Syntax,
@@ -32,7 +33,7 @@ impl<'a> Parser<'a> {
 		self.index.set(self.index.get() + 1);
 	}
 
-	fn get_current_token(&self) -> &Token {
+	fn current_token(&self) -> &Token {
 		if self.index.get() < self.tokens.len() {
 			&self.tokens[self.index.get()]
 		} else {
@@ -40,8 +41,8 @@ impl<'a> Parser<'a> {
 		}
 	}
 
-	pub fn parse(&self) -> Box<Syntax> {
-		Box::new(Syntax::Expression(self.parse_expression()))
+	pub fn parse(&self) -> Rc<Syntax> {
+		Rc::new(Syntax::Expression(self.parse_expression()))
 	}
 
 	fn parse_expression(&self) -> Expression {
@@ -53,13 +54,15 @@ impl<'a> Parser<'a> {
 	}
 
 	fn parse_parenthesised_expression(&self) -> Option<Expression> {
-		match self.get_current_token().get_kind() {
+		match self.current_token().kind() {
 			TokenKind::OpenParenthesis => {
-				let content = self.parse_operand_expression();
-				match self.get_current_token().get_kind() {
+				self.increment_index();
+				let content = self.parse_expression();
+
+				match self.current_token().kind() {
 					TokenKind::CloseParenthesis => {
 						self.increment_index();
-						Some(Expression::Parenthesised(ParenthesisedExpression::new(Box::new(content))))
+						Some(Expression::Parenthesised(ParenthesisedExpression::new(Rc::new(content))))
 					},
 					_ => panic!("Unclosed delimiter.")
 				}
@@ -69,9 +72,9 @@ impl<'a> Parser<'a> {
 	}
 
 	fn parse_literal_expression(&self) -> Option<Expression> {
-		let current_token = self.get_current_token();
+		let current_token = self.current_token();
 
-		let literal_expression_kind = match current_token.get_kind() {
+		let literal_expression_kind = match current_token.kind() {
 			TokenKind::StringLiteral => LiteralExpressionKind::String,
 			TokenKind::CharacterLiteral => LiteralExpressionKind::Character,
 			TokenKind::IntegerLiteral => LiteralExpressionKind::Integer,
@@ -84,19 +87,23 @@ impl<'a> Parser<'a> {
 		Some(Expression::Literal(LiteralExpression::new(current_token, literal_expression_kind)))
 	}
 
-	fn parse_operand_expression(&self) -> Expression {
-		self.increment_index();
-		self.parse_expression()
-	}
-
 	fn parse_unary_expression(&self) -> Option<Expression> {
-		let unary_expression_kind = match self.get_current_token().get_kind() {
+		let unary_expression_kind = match self.current_token().kind() {
 			TokenKind::PlusOperator => UnaryExpressionKind::Identity,
 			TokenKind::MinusOperator => UnaryExpressionKind::Negation,
 			_ => return None
 		};
 
-		Some(Expression::Unary(UnaryExpression::new(Box::new(self.parse_operand_expression()), unary_expression_kind)))
+		self.increment_index();
+
+		Some(
+			Expression::Unary(
+				UnaryExpression::new(
+					Rc::new(self.parse_expression()),
+					unary_expression_kind
+				)
+			)
+		)
 	}
 
 	fn parse_non_binary_expression(&self) -> Expression {
@@ -118,7 +125,7 @@ impl<'a> Parser<'a> {
 	fn parse_binary_expression(&self) -> Option<Expression> {
 		let left_operand = self.parse_non_binary_expression();
 
-		let binary_expression_kind = match self.get_current_token().get_kind() {
+		let binary_expression_kind = match self.current_token().kind() {
 			TokenKind::PlusOperator => BinaryExpressionKind::Addition,
 			TokenKind::MinusOperator => BinaryExpressionKind::Substraction,
 			TokenKind::SlashOperator => BinaryExpressionKind::Division,
@@ -127,16 +134,33 @@ impl<'a> Parser<'a> {
 			_ => return Some(left_operand)
 		};
 
-		let right_operand = self.parse_operand_expression();
+		self.increment_index();
+		let right_operand = self.parse_expression();
 
 		if let Expression::Binary(ref new_right_operand) = right_operand {
-			if binary_expression_kind.get_precedence() > new_right_operand.get_kind().get_precedence() {
-				let new_left_operand = Box::new(Expression::Binary(BinaryExpression::new(Box::new(left_operand), Box::new(new_right_operand.get_left_operand().clone()), binary_expression_kind)));
-				let binary_expression_kind = new_right_operand.get_kind();
-				return Some(Expression::Binary(BinaryExpression::new(new_left_operand, Box::new(new_right_operand.get_right_operand().clone()), binary_expression_kind)));
+			if binary_expression_kind.precedence() > new_right_operand.kind().precedence() {
+				let new_left_operand = Rc::new(
+					Expression::Binary(
+						BinaryExpression::new(
+							Rc::new(left_operand),
+							new_right_operand.left_operand_rc(),
+							binary_expression_kind
+						)
+					)
+				);
+
+				return Some(
+					Expression::Binary(
+						BinaryExpression::new(
+							new_left_operand,
+							new_right_operand.right_operand_rc(),
+							new_right_operand.kind()
+						)
+					)
+				);
 			}
 		}
 
-		Some(Expression::Binary(BinaryExpression::new(Box::new(left_operand), Box::new(right_operand), binary_expression_kind)))
+		Some(Expression::Binary(BinaryExpression::new(Rc::new(left_operand), Rc::new(right_operand), binary_expression_kind)))
 	}
 }

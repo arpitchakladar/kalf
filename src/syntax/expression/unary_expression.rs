@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::syntax::{
 	Expression
 };
@@ -8,25 +9,24 @@ pub enum UnaryExpressionKind {
 	Negation
 }
 
-#[derive(Clone)]
 pub struct UnaryExpression<'a> {
-	operand: Box<Expression<'a>>,
+	operand: Rc<Expression<'a>>,
 	kind: UnaryExpressionKind
 }
 
 impl<'a> UnaryExpression<'a> {
-	pub fn new(operand: Box<Expression<'a>>, kind: UnaryExpressionKind) -> Self {
+	pub fn new(operand: Rc<Expression<'a>>, kind: UnaryExpressionKind) -> Self {
 		Self {
 			operand,
 			kind
 		}
 	}
 
-	pub fn get_operand(&self) -> &Expression<'a> {
+	pub fn operand(&self) -> &Expression<'a> {
 		&self.operand
 	}
 
-	pub fn get_kind(&self) -> UnaryExpressionKind {
+	pub fn kind(&self) -> UnaryExpressionKind {
 		self.kind
 	}
 }

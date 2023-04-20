@@ -53,11 +53,11 @@ impl<'a> Lexer<'a> {
 		self.index.set(self.index.get() + by);
 	}
 
-	fn get_current_character(&self) -> char {
+	fn current_character(&self) -> char {
 		self.text.chars().nth(self.index.get()).unwrap()
 	}
 
-	fn get_current_character_offset(&self, offset: usize) -> char {
+	fn current_character_offset(&self, offset: usize) -> char {
 		self.text.chars().nth(self.index.get() + offset).unwrap()
 	}
 
@@ -80,7 +80,7 @@ impl<'a> Lexer<'a> {
 
 	fn lex_operator(&self) -> Option<Token<'a>> {
 		let current_index = self.index.get();
-		let arithmetic_operator_token_kind = match self.get_current_character() {
+		let arithmetic_operator_token_kind = match self.current_character() {
 			'+' => Some(TokenKind::PlusOperator),
 			'-' => Some(TokenKind::MinusOperator),
 			'*' => Some(TokenKind::StarOperator),
@@ -89,7 +89,7 @@ impl<'a> Lexer<'a> {
 			'(' => Some(TokenKind::OpenParenthesis),
 			')' => Some(TokenKind::CloseParenthesis),
 			'!' => {
-				if self.get_current_character_offset(1) == '=' {
+				if self.current_character_offset(1) == '=' {
 					self.increment_index_by(2);
 					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::NotEqualityOperator));
 				} else {
@@ -97,7 +97,7 @@ impl<'a> Lexer<'a> {
 				}
 			},
 			'|' => {
-				if self.get_current_character_offset(1) == '|' {
+				if self.current_character_offset(1) == '|' {
 					self.increment_index_by(2);
 					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LogicalOrOperator));
 				} else {
@@ -105,7 +105,7 @@ impl<'a> Lexer<'a> {
 				}
 			},
 			'&' => {
-				if self.get_current_character_offset(1) == '&' {
+				if self.current_character_offset(1) == '&' {
 					self.increment_index_by(2);
 					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LogicalAndOperator));
 				} else {
@@ -113,7 +113,7 @@ impl<'a> Lexer<'a> {
 				}
 			},
 			'<' => {
-				if self.get_current_character_offset(1) == '=' {
+				if self.current_character_offset(1) == '=' {
 					self.increment_index_by(2);
 					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::LessThanEqualToOperator));
 				} else {
@@ -121,7 +121,7 @@ impl<'a> Lexer<'a> {
 				}
 			},
 			'>' => {
-				if self.get_current_character_offset(1) == '=' {
+				if self.current_character_offset(1) == '=' {
 					self.increment_index_by(2);
 					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::GreaterThanEqualToOperator));
 				} else {
@@ -129,7 +129,7 @@ impl<'a> Lexer<'a> {
 				}
 			},
 			'=' => {
-				if self.get_current_character_offset(1) == '=' {
+				if self.current_character_offset(1) == '=' {
 					self.increment_index_by(2);
 					return Some(Token::new(current_index, &self.text[current_index..self.index.get()], TokenKind::EqualityOperator));
 				} else {
@@ -148,13 +148,13 @@ impl<'a> Lexer<'a> {
 	}
 
 	fn lex_number_literal(&self) -> Option<Token<'a>> {
-		if self.get_current_character().is_numeric() {
+		if self.current_character().is_numeric() {
 			let start_position = self.index.get();
 			self.increment_index();
 			let mut number_literal_kind = TokenKind::IntegerLiteral;
 
 			loop {
-				let current_character = self.get_current_character();
+				let current_character = self.current_character();
 
 				if current_character == '.' {
 					if number_literal_kind == TokenKind::FloatingPointLiteral {
@@ -180,11 +180,11 @@ impl<'a> Lexer<'a> {
 	}
 
 	fn lex_string_literal(&self) -> Option<Token<'a>> {
-		if self.get_current_character() == '"' {
+		if self.current_character() == '"' {
 			let start_position = self.index.get();
 			self.increment_index();
 
-			while self.get_current_character() != '"' {
+			while self.current_character() != '"' {
 				self.increment_index();
 
 				if self.text.len() <= self.index.get() {
@@ -201,7 +201,7 @@ impl<'a> Lexer<'a> {
 	}
 
 	fn lex_character_literal(&self) -> Option<Token<'a>> {
-		if self.get_current_character() == '\'' && self.get_current_character_offset(2) == '\'' {
+		if self.current_character() == '\'' && self.current_character_offset(2) == '\'' {
 			let current_index = self.index.get();
 			self.increment_index_by(3);
 
@@ -212,11 +212,11 @@ impl<'a> Lexer<'a> {
 	}
 
 	fn lex_keyword_and_identifier(&self) -> Option<Token<'a>> {
-		if self.get_current_character().is_alphabetic() {
+		if self.current_character().is_alphabetic() {
 			let start_position = self.index.get();
 			self.increment_index();
 
-			while self.get_current_character().is_alphanumeric() {
+			while self.current_character().is_alphanumeric() {
 				self.increment_index();
 
 				if self.text.len() <= self.index.get() {

@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::syntax::{
 	Expression
 };
@@ -12,7 +13,7 @@ pub enum BinaryExpressionKind {
 }
 
 impl BinaryExpressionKind {
-	pub fn get_precedence(&self) -> u8 {
+	pub fn precedence(&self) -> u8 {
 		match self {
 			BinaryExpressionKind::Addition |
 			BinaryExpressionKind::Substraction => 1,
@@ -24,15 +25,14 @@ impl BinaryExpressionKind {
 	}
 }
 
-#[derive(Clone)]
 pub struct BinaryExpression<'a> {
-	left_operand: Box<Expression<'a>>,
-	right_operand: Box<Expression<'a>>,
+	left_operand: Rc<Expression<'a>>,
+	right_operand: Rc<Expression<'a>>,
 	kind: BinaryExpressionKind
 }
 
 impl<'a> BinaryExpression<'a> {
-	pub fn new(left_operand: Box<Expression<'a>>, right_operand: Box<Expression<'a>>, kind: BinaryExpressionKind) -> Self {
+	pub fn new(left_operand: Rc<Expression<'a>>, right_operand: Rc<Expression<'a>>, kind: BinaryExpressionKind) -> Self {
 		Self {
 			left_operand,
 			right_operand,
@@ -40,15 +40,23 @@ impl<'a> BinaryExpression<'a> {
 		}
 	}
 
-	pub fn get_left_operand(&self) -> &Expression<'a> {
+	pub fn left_operand(&self) -> &Expression<'a> {
 		&self.left_operand
 	}
 
-	pub fn get_right_operand(&self) -> &Expression<'a> {
+	pub fn left_operand_rc(&self) -> Rc<Expression<'a>> {
+		self.left_operand.clone()
+	}
+
+	pub fn right_operand(&self) -> &Expression<'a> {
 		&self.right_operand
 	}
 
-	pub fn get_kind(&self) -> BinaryExpressionKind {
+	pub fn right_operand_rc(&self) -> Rc<Expression<'a>> {
+		self.right_operand.clone()
+	}
+
+	pub fn kind(&self) -> BinaryExpressionKind {
 		self.kind
 	}
 }
