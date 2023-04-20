@@ -2,15 +2,18 @@ use std::cell::Cell;
 use crate::syntax::{
 	Syntax,
 	Expression,
-	BinaryExpressionContent,
+	BinaryExpressionKind,
 	BinaryExpression,
-	UnaryExpressionContent,
+	UnaryExpressionKind,
 	UnaryExpression,
-	LiteralExpressionContent,
+	LiteralExpressionKind,
 	LiteralExpression,
 	ParenthesisedExpression
 };
-use crate::lexing::Token;
+use crate::lexing::{
+	Token,
+	TokenKind
+};
 
 pub struct Parser<'a> {
 	tokens: &'a Vec<Token<'a>>,
@@ -41,7 +44,7 @@ impl<'a> Parser<'a> {
 		Box::new(Syntax::Expression(self.parse_expression()))
 	}
 
-	fn parse_expression(&'a self) -> Expression {
+	fn parse_expression(&self) -> Expression {
 		if let Some(binary_expression) = self.parse_binary_expression() {
 			return binary_expression;
 		}
@@ -49,7 +52,54 @@ impl<'a> Parser<'a> {
 		panic!("Parsing failed")
 	}
 
-	fn parse_non_binary_expression(&'a self) -> Expression {
+	fn parse_parenthesised_expression(&self) -> Option<Expression> {
+		match self.get_current_token().get_kind() {
+			TokenKind::OpenParenthesis => {
+				let content = self.parse_operand_expression();
+				match self.get_current_token().get_kind() {
+					TokenKind::CloseParenthesis => {
+						self.increment_index();
+						Some(Expression::Parenthesised(ParenthesisedExpression::new(Box::new(content))))
+					},
+					_ => panic!("Unclosed delimiter.")
+				}
+			},
+			_ => None
+		}
+	}
+
+	fn parse_literal_expression(&self) -> Option<Expression> {
+		let current_token = self.get_current_token();
+
+		let literal_expression_kind = match current_token.get_kind() {
+			TokenKind::StringLiteral => LiteralExpressionKind::String,
+			TokenKind::CharacterLiteral => LiteralExpressionKind::Character,
+			TokenKind::IntegerLiteral => LiteralExpressionKind::Integer,
+			TokenKind::FloatingPointLiteral => LiteralExpressionKind::FloatingPoint,
+			_ => return None
+		};
+
+		self.increment_index();
+
+		Some(Expression::Literal(LiteralExpression::new(current_token, literal_expression_kind)))
+	}
+
+	fn parse_operand_expression(&self) -> Expression {
+		self.increment_index();
+		self.parse_expression()
+	}
+
+	fn parse_unary_expression(&self) -> Option<Expression> {
+		let unary_expression_kind = match self.get_current_token().get_kind() {
+			TokenKind::PlusOperator => UnaryExpressionKind::Identity,
+			TokenKind::MinusOperator => UnaryExpressionKind::Negation,
+			_ => return None
+		};
+
+		Some(Expression::Unary(UnaryExpression::new(Box::new(self.parse_operand_expression()), unary_expression_kind)))
+	}
+
+	fn parse_non_binary_expression(&self) -> Expression {
 		if let Some(parenthesised_expression) = self.parse_parenthesised_expression() {
 			return parenthesised_expression;
 		}
@@ -65,69 +115,36 @@ impl<'a> Parser<'a> {
 		panic!("Parsing failed");
 	}
 
-	fn parse_parenthesised_expression(&'a self) -> Option<Expression> {
-		match self.get_current_token() {
-			Token::OpenParenthesis(..) => {
-				let content = self.parse_operand_expression();
-				match self.get_current_token() {
-					Token::CloseParenthesis(..) => {
-						self.increment_index();
-						Some(Expression::Parenthesised(ParenthesisedExpression::new(content)))
-					},
-					_ => panic!("Unclosed delimiter.")
-				}
-			},
-			_ => None
-		}
-	}
-
-	fn parse_literal_expression(&'a self) -> Option<Expression> {
-		let current_token = self.get_current_token();
-
-		Some(Expression::Literal(match current_token {
-			Token::StringLiteral(token_content) => {
-				self.increment_index();
-				LiteralExpression::String(LiteralExpressionContent::new(token_content))
-			},
-			Token::CharacterLiteral(token_content) => {
-				self.increment_index();
-				LiteralExpression::Character(LiteralExpressionContent::new(token_content))
-			},
-			Token::IntegerLiteral(token_content) => {
-				self.increment_index();
-				LiteralExpression::Integer(LiteralExpressionContent::new(token_content))
-			},
-			Token::FloatingPointLiteral(token_content) => {
-				self.increment_index();
-				LiteralExpression::FloatingPoint(LiteralExpressionContent::new(token_content))
-			},
-			_ => return None
-		}))
-	}
-
-	fn parse_operand_expression(&'a self) -> Box<Expression> {
-		self.increment_index();
-		Box::new(self.parse_expression())
-	}
-
-	fn parse_unary_expression(&'a self) -> Option<Expression> {
-		Some(Expression::Unary(match self.get_current_token() {
-			Token::PlusOperator(..) => UnaryExpression::Identity(UnaryExpressionContent::new(self.parse_operand_expression())),
-			Token::MinusOperator(..) => UnaryExpression::Negation(UnaryExpressionContent::new(self.parse_operand_expression())),
-			_ => return None
-		}))
-	}
-
-	fn parse_binary_expression(&'a self) -> Option<Expression> {
+	fn parse_binary_expression(&self) -> Option<Expression> {
 		let left_operand = self.parse_non_binary_expression();
 
-		Some(Expression::Binary(match self.get_current_token() {
-			Token::PlusOperator(..) => BinaryExpression::Addition(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
-			Token::MinusOperator(..) => BinaryExpression::Substraction(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
-			Token::SlashOperator(..) => BinaryExpression::Division(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
-			Token::StarOperator(..) => BinaryExpression::Multiplication(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
-			Token::PercentageOperator(..) => BinaryExpression::Modulo(BinaryExpressionContent::new(Box::new(left_operand), self.parse_operand_expression())),
+		let precedence;
+		let binary_expression_kind = match self.get_current_token().get_kind() {
+			TokenKind::PlusOperator => {
+				precedence = 1;
+				BinaryExpressionKind::Addition
+			},
+			TokenKind::MinusOperator => {
+				precedence = 1;
+				BinaryExpressionKind::Substraction
+			},
+			TokenKind::SlashOperator => {
+				precedence = 2;
+				BinaryExpressionKind::Division
+			},
+			TokenKind::StarOperator => {
+				precedence = 2;
+				BinaryExpressionKind::Multiplication
+			},
+			TokenKind::PercentageOperator => {
+				precedence = 2;
+				BinaryExpressionKind::Modulo
+			},
 			_ => return Some(left_operand)
-		}))
+		};
+
+		let right_operand = self.parse_operand_expression();
+
+		Some(Expression::Binary(BinaryExpression::new(Box::new(left_operand), Box::new(right_operand), binary_expression_kind)))
 	}
 }

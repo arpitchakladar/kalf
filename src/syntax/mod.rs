@@ -6,11 +6,11 @@ pub use syntax::{
 };
 pub use expression::{
 	Expression,
-	BinaryExpressionContent,
+	BinaryExpressionKind,
 	BinaryExpression,
-	UnaryExpressionContent,
+	UnaryExpressionKind,
 	UnaryExpression,
-	LiteralExpressionContent,
+	LiteralExpressionKind,
 	LiteralExpression,
 	ParenthesisedExpression
 };

@@ -1,57 +1,64 @@
-pub enum Token<'a> {
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum TokenKind {
 // Literals
-	StringLiteral(TokenContent<'a>),
-	CharacterLiteral(TokenContent<'a>),
-	IntegerLiteral(TokenContent<'a>),
-	FloatingPointLiteral(TokenContent<'a>),
+	StringLiteral,
+	CharacterLiteral,
+	IntegerLiteral,
+	FloatingPointLiteral,
 
 // Arithmetic
-	PlusOperator(TokenContent<'a>),
-	MinusOperator(TokenContent<'a>),
-	SlashOperator(TokenContent<'a>),
-	StarOperator(TokenContent<'a>),
-	PercentageOperator(TokenContent<'a>),
+	PlusOperator,
+	MinusOperator,
+	SlashOperator,
+	StarOperator,
+	PercentageOperator,
 
 // Assignment
-	AssignmentOperator(TokenContent<'a>),
+	AssignmentOperator,
 
 // Relational
-	EqualityOperator(TokenContent<'a>),
-	NotEqualityOperator(TokenContent<'a>),
-	LessThanOperator(TokenContent<'a>),
-	GreaterThanOperator(TokenContent<'a>),
-	LessThanEqualToOperator(TokenContent<'a>),
-	GreaterThanEqualToOperator(TokenContent<'a>),
+	EqualityOperator,
+	NotEqualityOperator,
+	LessThanOperator,
+	GreaterThanOperator,
+	LessThanEqualToOperator,
+	GreaterThanEqualToOperator,
 
 // Logical
-	LogicalNotOperator(TokenContent<'a>),
-	LogicalAndOperator(TokenContent<'a>),
-	LogicalOrOperator(TokenContent<'a>),
+	LogicalNotOperator,
+	LogicalAndOperator,
+	LogicalOrOperator,
 
 // Separator
-	OpenParenthesis(TokenContent<'a>),
-	CloseParenthesis(TokenContent<'a>),
+	OpenParenthesis,
+	CloseParenthesis,
 
-	Identifier(TokenContent<'a>),
-	Keyword(TokenContent<'a>),
+	Identifier,
+	Keyword,
 
 	End
 }
 
-pub struct TokenContent<'a> {
+pub struct Token<'a> {
 	index: usize,
-	text: &'a str
+	text: &'a str,
+	kind: TokenKind
 }
 
-impl<'a> TokenContent<'a> {
-	pub fn new(index: usize, text: &'a str) -> Self {
+impl<'a> Token<'a> {
+	pub fn new(index: usize, text: &'a str, kind: TokenKind) -> Self {
 		Self {
 			index,
-			text
+			text,
+			kind
 		}
 	}
 
 	pub fn get_text(&self) -> &'a str {
 		self.text
+	}
+
+	pub fn get_kind(&self) -> TokenKind {
+		self.kind
 	}
 }

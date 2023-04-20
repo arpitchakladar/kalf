@@ -3,6 +3,6 @@ mod lexer;
 
 pub use token::{
 	Token,
-	TokenContent
+	TokenKind
 };
 pub use lexer::Lexer;

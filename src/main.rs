@@ -4,19 +4,19 @@ mod parser;
 mod diagnostic;
 
 use lexing::{
-	Token,
+	TokenKind,
 	Lexer
 };
 use parser::Parser;
 use diagnostic::print_syntax;
 
 fn main() {
-	let lexer = Lexer::new("(10 * 32.2 - 12) / 12 - 12 + 13 % (9 - -(6 * 2))");
+	let lexer = Lexer::new("(10 * 32.2 - 12) / 12 - 12 + 13 % (-9 - -(6 * 2 + 2))");
 	let mut tokens = Vec::new();
 
 	loop {
 		let token = lexer.lex().unwrap();
-		if let Token::End = token {
+		if token.get_kind() == TokenKind::End {
 			break;
 		} else {
 			tokens.push(token);

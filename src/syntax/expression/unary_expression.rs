@@ -2,23 +2,30 @@ use crate::syntax::{
 	Expression
 };
 
-pub enum UnaryExpression<'a> {
-	Identity(UnaryExpressionContent<'a>),
-	Negation(UnaryExpressionContent<'a>)
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum UnaryExpressionKind {
+	Identity,
+	Negation
 }
 
-pub struct UnaryExpressionContent<'a> {
-	operand: Box<Expression<'a>>
+pub struct UnaryExpression<'a> {
+	operand: Box<Expression<'a>>,
+	kind: UnaryExpressionKind
 }
 
-impl<'a> UnaryExpressionContent<'a> {
-	pub fn new(operand: Box<Expression<'a>>) -> Self {
+impl<'a> UnaryExpression<'a> {
+	pub fn new(operand: Box<Expression<'a>>, kind: UnaryExpressionKind) -> Self {
 		Self {
-			operand
+			operand,
+			kind
 		}
 	}
 
 	pub fn get_operand(&self) -> &Expression<'a> {
 		&self.operand
+	}
+
+	pub fn get_kind(&self) -> UnaryExpressionKind {
+		self.kind
 	}
 }

@@ -1,9 +1,9 @@
 use crate::syntax::{
 	Syntax,
 	Expression,
-	BinaryExpressionContent,
+	BinaryExpressionKind,
 	BinaryExpression,
-	UnaryExpressionContent,
+	UnaryExpressionKind,
 	UnaryExpression,
 	LiteralExpression,
 	ParenthesisedExpression
@@ -32,44 +32,33 @@ fn print_parenthesised_expression(parenthesised_expression: &ParenthesisedExpres
 }
 
 fn print_literal_expression(literal_expression: &LiteralExpression, _: usize) {
-	match literal_expression {
-		LiteralExpression::Integer(literal_expression_content) |
-		LiteralExpression::FloatingPoint(literal_expression_content) |
-		LiteralExpression::Character(literal_expression_content) |
-		LiteralExpression::String(literal_expression_content) => println!("{}", literal_expression_content.get_token().get_text())
-	}
-}
-
-fn print_unary_expression_content(operator: &str, unary_expression_content: &UnaryExpressionContent, indentation: usize) {
-	print!("{} ", operator);
-	print_expression(unary_expression_content.get_operand(), indentation + 1);
+	println!("{}", literal_expression.get_token().get_text());
 }
 
 fn print_unary_expression(unary_expression: &UnaryExpression, indentation: usize) {
-	match unary_expression {
-		UnaryExpression::Identity(unary_expression_content) => print_unary_expression_content("+", unary_expression_content, indentation),
-		UnaryExpression::Negation(unary_expression_content) => print_unary_expression_content("-", unary_expression_content, indentation)
+	match unary_expression.get_kind() {
+		UnaryExpressionKind::Identity => print!("+ "),
+		UnaryExpressionKind::Negation => print!("- ")
 	}
-}
 
-fn print_binary_expression_content(operator: &str, binary_expression_content: &BinaryExpressionContent, indentation: usize) {
-	println!("{}", operator);
-	print_indentation(indentation);
-	print!("└ ");
-	print_expression(binary_expression_content.get_left_operand(), indentation + 1);
-	print_indentation(indentation);
-	print!("└ ");
-	print_expression(binary_expression_content.get_right_operand(), indentation + 1);
+	print_expression(unary_expression.get_operand(), indentation + 1);
 }
 
 fn print_binary_expression(binary_expression: &BinaryExpression, indentation: usize) {
-	match binary_expression {
-		BinaryExpression::Addition(binary_expression_content) => print_binary_expression_content("+", binary_expression_content, indentation),
-		BinaryExpression::Substraction(binary_expression_content) => print_binary_expression_content("-", binary_expression_content, indentation),
-		BinaryExpression::Multiplication(binary_expression_content) => print_binary_expression_content("*", binary_expression_content, indentation),
-		BinaryExpression::Division(binary_expression_content) => print_binary_expression_content("/", binary_expression_content, indentation),
-		BinaryExpression::Modulo(binary_expression_content) => print_binary_expression_content("%", binary_expression_content, indentation)
+	match binary_expression.get_kind() {
+		BinaryExpressionKind::Addition => println!("+"),
+		BinaryExpressionKind::Substraction => println!("-"),
+		BinaryExpressionKind::Multiplication => println!("*"),
+		BinaryExpressionKind::Division => println!("/"),
+		BinaryExpressionKind::Modulo => println!("%")
 	}
+
+	print_indentation(indentation);
+	print!("└ ");
+	print_expression(binary_expression.get_left_operand(), indentation + 1);
+	print_indentation(indentation);
+	print!("└ ");
+	print_expression(binary_expression.get_right_operand(), indentation + 1);
 }
 
 fn print_indentation(indentation: usize) {

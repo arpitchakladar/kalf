@@ -2,24 +2,27 @@ use crate::syntax::{
 	Expression
 };
 
-pub enum BinaryExpression<'a> {
-	Addition(BinaryExpressionContent<'a>),
-	Substraction(BinaryExpressionContent<'a>),
-	Multiplication(BinaryExpressionContent<'a>),
-	Division(BinaryExpressionContent<'a>),
-	Modulo(BinaryExpressionContent<'a>)
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum BinaryExpressionKind {
+	Addition,
+	Substraction,
+	Multiplication,
+	Division,
+	Modulo
 }
 
-pub struct BinaryExpressionContent<'a> {
+pub struct BinaryExpression<'a> {
 	left_operand: Box<Expression<'a>>,
-	right_operand: Box<Expression<'a>>
+	right_operand: Box<Expression<'a>>,
+	kind: BinaryExpressionKind
 }
 
-impl<'a> BinaryExpressionContent<'a> {
-	pub fn new(left_operand: Box<Expression<'a>>, right_operand: Box<Expression<'a>>) -> Self {
+impl<'a> BinaryExpression<'a> {
+	pub fn new(left_operand: Box<Expression<'a>>, right_operand: Box<Expression<'a>>, kind: BinaryExpressionKind) -> Self {
 		Self {
 			left_operand,
-			right_operand
+			right_operand,
+			kind
 		}
 	}
 
@@ -29,5 +32,9 @@ impl<'a> BinaryExpressionContent<'a> {
 
 	pub fn get_right_operand(&self) -> &Expression<'a> {
 		&self.right_operand
+	}
+
+	pub fn get_kind(&self) -> BinaryExpressionKind {
+		self.kind
 	}
 }

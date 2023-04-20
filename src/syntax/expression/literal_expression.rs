@@ -1,24 +1,31 @@
-use crate::lexing::TokenContent;
+use crate::lexing::Token;
 
-pub enum LiteralExpression<'a> {
-	Integer(LiteralExpressionContent<'a>),
-	FloatingPoint(LiteralExpressionContent<'a>),
-	Character(LiteralExpressionContent<'a>),
-	String(LiteralExpressionContent<'a>)
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum LiteralExpressionKind {
+	Integer,
+	FloatingPoint,
+	Character,
+	String
 }
 
-pub struct LiteralExpressionContent<'a> {
-	token: &'a TokenContent<'a>
+pub struct LiteralExpression<'a> {
+	token: &'a Token<'a>,
+	kind: LiteralExpressionKind
 }
 
-impl<'a> LiteralExpressionContent<'a> {
-	pub fn new(token: &'a TokenContent<'a>) -> Self {
+impl<'a> LiteralExpression<'a> {
+	pub fn new(token: &'a Token<'a>, kind: LiteralExpressionKind) -> Self {
 		Self {
-			token
+			token,
+			kind
 		}
 	}
 
-	pub fn get_token(&self) -> &'a TokenContent<'a> {
-		self.token
+	pub fn get_token(&self) -> &Token<'a> {
+		&self.token
+	}
+
+	pub fn get_kind(&self) -> LiteralExpressionKind {
+		self.kind
 	}
 }

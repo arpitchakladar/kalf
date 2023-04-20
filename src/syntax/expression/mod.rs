@@ -8,15 +8,15 @@ pub use expression::{
 	Expression
 };
 pub use binary_expression::{
-	BinaryExpressionContent,
+	BinaryExpressionKind,
 	BinaryExpression
 };
 pub use unary_expression::{
-	UnaryExpressionContent,
+	UnaryExpressionKind,
 	UnaryExpression
 };
 pub use literal_expression::{
-	LiteralExpressionContent,
+	LiteralExpressionKind,
 	LiteralExpression
 };
 pub use parenthesised_expression::ParenthesisedExpression;
