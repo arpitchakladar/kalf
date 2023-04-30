@@ -3,6 +3,7 @@ mod syntax;
 mod parser;
 mod diagnostic;
 mod runtime;
+mod types;
 
 use lexing::{
 	TokenKind,
@@ -13,7 +14,8 @@ use diagnostic::print_syntax;
 use runtime::evaluate_syntax;
 
 fn main() {
-	let lexer = Lexer::new("(10 * 32.2 - 12) / 12 - 12");
+	let code = "(10 * 32.2 - 12) / 12 - 4 + (44 - 23) + 5 - 12";
+	let lexer = Lexer::new(code);
 	let mut tokens = Vec::new();
 
 	loop {
@@ -28,5 +30,5 @@ fn main() {
 	let parser = Parser::new(&tokens);
 	let syntax = parser.parse();
 	print_syntax(&syntax);
-	println!("Value = {}", evaluate_syntax(&syntax));
+	println!("{} = {}", code, evaluate_syntax(&syntax));
 }

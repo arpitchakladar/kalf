@@ -150,7 +150,6 @@ impl<'a> Lexer<'a> {
 	fn lex_number_literal(&self) -> Option<Token<'a>> {
 		if self.current_character().is_numeric() {
 			let start_position = self.index.get();
-			self.increment_index();
 			let mut number_literal_kind = TokenKind::IntegerLiteral;
 
 			loop {
