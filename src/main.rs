@@ -5,6 +5,7 @@ mod diagnostic;
 mod runtime;
 mod types;
 
+use std::fs;
 use lexing::{
 	TokenKind,
 	Lexer
@@ -14,8 +15,8 @@ use diagnostic::print_syntax;
 use runtime::evaluate_syntax;
 
 fn main() {
-	let code = "(10 * 32.2 - 12) / 12 - 4 + (44 - 23) + 5 - 12";
-	let lexer = Lexer::new(code);
+    let code = String::from_utf8(fs::read("tests/scripts/foo.kalf").unwrap()).unwrap();
+	let lexer = Lexer::new(&code);
 	let mut tokens = Vec::new();
 
 	loop {
@@ -30,5 +31,5 @@ fn main() {
 	let parser = Parser::new(&tokens);
 	let syntax = parser.parse();
 	print_syntax(&syntax);
-	println!("{} = {}", code, evaluate_syntax(&syntax));
+	println!("{}\n\nOUTPUT\n{}", code, evaluate_syntax(&syntax));
 }

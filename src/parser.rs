@@ -137,13 +137,13 @@ impl<'a> Parser<'a> {
 		self.increment_index();
 		let right_operand = self.parse_expression();
 
-		if let Expression::Binary(ref new_right_operand) = right_operand {
-			if binary_expression_kind.precedence() > new_right_operand.kind().precedence() {
-				let new_left_operand = Rc::new(
+		if let Expression::Binary(ref right_operand) = right_operand {
+			if binary_expression_kind.precedence() > right_operand.kind().precedence() {
+				let left_operand = Rc::new(
 					Expression::Binary(
 						BinaryExpression::new(
 							Rc::new(left_operand),
-							new_right_operand.left_operand_rc(),
+							right_operand.left_operand_rc(),
 							binary_expression_kind
 						)
 					)
@@ -152,15 +152,23 @@ impl<'a> Parser<'a> {
 				return Some(
 					Expression::Binary(
 						BinaryExpression::new(
-							new_left_operand,
-							new_right_operand.right_operand_rc(),
-							new_right_operand.kind()
+							left_operand,
+							right_operand.right_operand_rc(),
+							right_operand.kind()
 						)
 					)
 				);
 			}
 		}
 
-		Some(Expression::Binary(BinaryExpression::new(Rc::new(left_operand), Rc::new(right_operand), binary_expression_kind)))
+		Some(
+			Expression::Binary(
+				BinaryExpression::new(
+					Rc::new(left_operand),
+					Rc::new(right_operand),
+					binary_expression_kind
+				)
+			)
+		)
 	}
 }
