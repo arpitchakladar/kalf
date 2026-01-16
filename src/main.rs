@@ -15,7 +15,7 @@ use diagnostic::print_syntax;
 use runtime::evaluate_syntax;
 
 fn main() {
-    let code = String::from_utf8(fs::read("tests/scripts/foo.kalf").unwrap()).unwrap();
+	let code = String::from_utf8(fs::read("tests/scripts/foo.kalf").unwrap()).unwrap();
 	let lexer = Lexer::new(&code);
 	let mut tokens = Vec::new();
 
