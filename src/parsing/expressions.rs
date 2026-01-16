@@ -1,7 +1,6 @@
 use std::rc::Rc;
-use std::cell::Cell;
+use crate::parsing::Parser;
 use crate::syntax::{
-	Syntax,
 	Expression,
 	BinaryExpressionKind,
 	BinaryExpression,
@@ -11,41 +10,10 @@ use crate::syntax::{
 	LiteralExpression,
 	ParenthesisedExpression
 };
-use crate::lexing::{
-	Token,
-	TokenKind
-};
-
-pub struct Parser<'a> {
-	tokens: &'a Vec<Token<'a>>,
-	index: Cell<usize>
-}
+use crate::lexing::TokenKind;
 
 impl<'a> Parser<'a> {
-	pub fn new(tokens: &'a Vec<Token>) -> Self {
-		Self {
-			tokens,
-			index: Cell::new(0)
-		}
-	}
-
-	fn increment_index(&self) {
-		self.index.set(self.index.get() + 1);
-	}
-
-	fn current_token(&self) -> &Token {
-		if self.index.get() < self.tokens.len() {
-			&self.tokens[self.index.get()]
-		} else {
-			&self.tokens[self.tokens.len() - 1]
-		}
-	}
-
-	pub fn parse(&self) -> Rc<Syntax> {
-		Rc::new(Syntax::Expression(self.parse_expression()))
-	}
-
-	fn parse_expression(&self) -> Expression {
+	pub(in crate::parsing) fn parse_expression(&self) -> Expression<'_> {
 		if let Some(binary_expression) = self.parse_binary_expression() {
 			return binary_expression;
 		}
@@ -53,7 +21,7 @@ impl<'a> Parser<'a> {
 		panic!("Parsing failed")
 	}
 
-	fn parse_parenthesised_expression(&self) -> Option<Expression> {
+	fn parse_parenthesised_expression(&self) -> Option<Expression<'_>> {
 		match self.current_token().kind() {
 			TokenKind::OpenParenthesis => {
 				self.increment_index();
@@ -71,7 +39,7 @@ impl<'a> Parser<'a> {
 		}
 	}
 
-	fn parse_literal_expression(&self) -> Option<Expression> {
+	fn parse_literal_expression(&self) -> Option<Expression<'_>> {
 		let current_token = self.current_token();
 
 		let literal_expression_kind = match current_token.kind() {
@@ -87,7 +55,7 @@ impl<'a> Parser<'a> {
 		Some(Expression::Literal(LiteralExpression::new(current_token, literal_expression_kind)))
 	}
 
-	fn parse_unary_expression(&self) -> Option<Expression> {
+	fn parse_unary_expression(&self) -> Option<Expression<'_>> {
 		let unary_expression_kind = match self.current_token().kind() {
 			TokenKind::PlusOperator => UnaryExpressionKind::Identity,
 			TokenKind::MinusOperator => UnaryExpressionKind::Negation,
@@ -106,7 +74,7 @@ impl<'a> Parser<'a> {
 		)
 	}
 
-	fn parse_non_binary_expression(&self) -> Expression {
+	fn parse_non_binary_expression(&self) -> Expression<'_> {
 		if let Some(parenthesised_expression) = self.parse_parenthesised_expression() {
 			return parenthesised_expression;
 		}
@@ -122,7 +90,7 @@ impl<'a> Parser<'a> {
 		panic!("Parsing failed");
 	}
 
-	fn parse_binary_expression(&self) -> Option<Expression> {
+	fn parse_binary_expression(&self) -> Option<Expression<'_>> {
 		let left_operand = self.parse_non_binary_expression();
 
 		let binary_expression_kind = match self.current_token().kind() {

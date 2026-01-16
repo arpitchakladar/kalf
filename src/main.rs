@@ -1,6 +1,6 @@
 mod lexing;
 mod syntax;
-mod parser;
+mod parsing;
 mod diagnostic;
 mod runtime;
 mod types;
@@ -10,7 +10,7 @@ use lexing::{
 	TokenKind,
 	Lexer
 };
-use parser::Parser;
+use parsing::Parser;
 use diagnostic::print_syntax;
 use runtime::evaluate_syntax;
 
